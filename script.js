@@ -10,6 +10,7 @@ let playerGold = 300
 let enemiesInterval = 600 // interval for spawning enemies
 let frame = 0
 let gameOver = false
+let score = 0
 
 const grid = []
 const wizards = []
@@ -69,7 +70,7 @@ function handleGrid() {
     }
 }
 // SPELLS
-class Spells {
+class Spell {
     constructor(x, y){
         this.x = x
         this.y = y
@@ -80,8 +81,9 @@ class Spells {
     }
     update(){
         this.x += this.speed
+        console.log(this.x, this.y)
     }
-    draw(){ //draws spell using arc property (circle in this case)
+    draw(){ //draws spells using arc property. Circle in this case
         c.fillStyle = 'black'
         c.beginPath()
         c.arc(this.x, this.y, this.width, 0, Math.PI * 2)
@@ -90,24 +92,33 @@ class Spells {
 }
 function handleSpells(){
     for (let i = 0; i < spells.length; i++){ //for loop that cycles through spell array creating animation
+        console.log(spells[i])
         spells[i].update() //updates or creates movement of the spell
         spells[i].draw() //drawing along the path
-
-        if (spells[i] && spells[i].x > canvas.width - cellSize / 2) //doesn't let a spell exit canvas space and stops before one grid / 2
+        if (spells[i] && spells[i].x > canvas.width - cellSize) { //doesn't let a spell exit canvas space and stops before one grid / 2
             spells.splice(i, 1) //removes that one spell
             i-- //makes that next spell in the array doesn't get removed
+        }
+        for (let j = 0; j < enemies.length; j++) {
+            if (enemies[j] && spells[i] && collision(spells[i], enemies[j])){ //checks for collision between spells and enemies
+                enemies[j].health -= spells[i].power //removes health from enemies with the value of spells power
+                spells.splice(i, 1)
+                i--
+            }}
+
     }
+    // console.log(spells.length)
 }
 // WIZARDS
 class Wizard {
     constructor(x, y) {
         this.x = x
         this.y = y
-        this.width = cellSize
-        this.height = cellSize
+        this.width = cellSize - gap * 2
+        this.height = cellSize - gap * 2
         this.casting = false
         this.health = 100
-        this.spells = []
+        // this.spells = []
         this.timer = 0
     }
     draw() {
@@ -117,14 +128,27 @@ class Wizard {
         c.font = '20px Cinzel Decorative'
         c.fillText('Hp: ' + Math.floor(this.health), this.x + 15, this.y + 30)
     }
+    update(){
+        if (this.casting == true){ //only casts spell if there is a target in line
+            this.timer++
+            console.log(this.timer)
+            if (this.timer % 100 === 0){
+                spells.push(new Spell(this.x + 70, this.y + 50))
+                console.log(spells)
+        }
+        // else { //otherwise, wizards don't cast spells
+        //     this.timer = 0 
+        // }
+        }
+    }
 }
 canvas.addEventListener('click', function() {
     //find closest grid position to the left
-    const gridX = mouse.x - (mouse.x % cellSize); 
+    const gridX = mouse.x - (mouse.x % cellSize) + gap; 
 
     // module operator gives a remainder value, if mouse position is 260, cellSize is 100 ; 
     // 100 % 100 = 60, so if mouse position is 260, then gridX = 260 - 60 = 200 which is the closest horisontal grid position to the left
-    const gridY = mouse.y - (mouse.y % cellSize);
+    const gridY = mouse.y - (mouse.y % cellSize) + gap;
     //to prevent user from clicking on the top blue bar:
     if (gridY < cellSize) return; //because max cellSize is 100, on y if it's less then 100 then it's off the grid
 
@@ -145,10 +169,17 @@ canvas.addEventListener('click', function() {
 function handleWizards() {
     for (let i = 0; i < wizards.length; i++){
         wizards[i].draw()
+        wizards[i].update()
+        // console.log(enemyPosition.indexOf(wizards[i].y))
+        if (enemyPosition.indexOf(wizards[i].y) !== -1){ //if indexOf returns -1 it means it didnt find any item with this value in this array
+            wizards[i].casting = true //this particular wizard will start shooring if enemy is visible on y coordinate *Important
+        } else {
+            wizards[i].casting = false //stops wizards from casting if no enemy detected on the y coordinate *Important
+        }
         for (let j = 0; j < enemies.length; j++){
-            if (collision(wizards[i], enemies[j])){ //this will check every wizards against every enemy
+            if (wizards[i] && collision(wizards[i], enemies[j])){ //this will check every wizards against every enemy
                 enemies[j].movement = 0 //stops enemy at wizard collision
-                wizards[i].health -= 0.2 //drops wizard health. The larger the number the faster wizards drop their health
+                wizards[i].health -= 2 //drops wizard health. The larger the number the faster wizards drop their health
             }
             if (wizards[i] && wizards[i].health <= 0) { //if wizard's health drops or equal to 0
                 wizards.splice(i, 1) //One wizard is removed from wizards array
@@ -163,9 +194,10 @@ class Enemy {
     constructor(verticalPosition){
         this.x = canvas.width
         this.y = verticalPosition
-        this.width = cellSize
-        this.height = cellSize
-        this.speed = Math.random() * 1 + 2 //defines enemy speed
+        this.width = cellSize - gap * 2
+        this.height = cellSize - gap * 2
+        // this.speed = Math.random() * 1 + 2 //defines enemy speed
+        this.speed = Math.random() * 0.2 + 0.4 //defines enemy speed
         this.movement = this.speed
         this.health = 100
         this.maxHealth = this.health //This is needed to create different rewards in Gold for different targets defeated
@@ -189,9 +221,18 @@ function handleEnemies(){
         if (enemies[i].x < 0) { //if enemy reaches end of the grid the game is over
             gameOver = true
         }
+        if (enemies[i].health <= 0){
+            let bounty = enemies[i].maxHealth/10 //adds gold to player depending on the enemy health / 10
+            playerGold += bounty //adds gold from enemy
+            score += bounty //adds score points same as gold
+            const findThisIndex = enemyPosition.indexOf(enemies[i].y) //detects enemy on y coordinate *Important
+            enemyPosition.splice(findThisIndex, 1) //we remove an enemy on y coordinate?
+            enemies.splice(i, 1) //removes enemy after it was defeated
+            i-- //removes just one that enemy
+        }
     }
     if (frame % enemiesInterval === 0){ //every time frame gets up to 100, the new Enemy class spawns
-        let verticalPosition = Math.floor(Math.random() * 5 + 1) * cellSize //this will always correspond with our vertical grid
+        let verticalPosition = Math.floor(Math.random() * 5 + 1) * cellSize + gap //this will always correspond with our vertical grid
         enemies.push(new Enemy(verticalPosition)) //enemy spawns at var verticalPosition
         enemyPosition.push(verticalPosition) //creates new enemies
         if (enemiesInterval > 120) enemiesInterval -= 50 //this is where to change enemy spawn speed - difficulty. Less than 50 - slower spawn
@@ -203,7 +244,8 @@ function handleEnemies(){
 function HandleGameStatus() {
     c.fillStyle = 'gold'
     c.font = '30px Cinzel Decorative'
-    c.fillText('Gold: ' + playerGold, 20, 50)
+    c.fillText('Score: ' + score, 20, 40)
+    c.fillText('Gold: ' + playerGold, 20, 80)
     if (gameOver){ //message if gameOver variable becomes true
         c.fillStyle = 'black'
         c.font = '80px Cinzel Decorative'
@@ -218,6 +260,7 @@ function animate() {
     c.fillRect(0, 0, controls.width, controls.height)
     handleGrid() //grid now exists
     handleWizards() //we can place wizards on the board now
+    handleSpells()
     handleEnemies() //we call enemies function- enemies start to spawn
     HandleGameStatus()
     frame++
@@ -235,3 +278,8 @@ function collision(first, second) {
         return true
     }
 }
+
+//Fix for the mouse offset when resizing the screen
+window.addEventListener('resize', function(){
+    canvasPosition = canvas.getBoundingClientRect()
+})
