@@ -4,9 +4,9 @@ canvas.width = 900
 canvas.height = 600
 
 // GLOBAL VARIABLES
-const cellSize = 100
+const cellSize = 50
 const gap = 3
-let playerGold = 300
+let playerGold = 250
 let enemiesInterval = 600 // interval for spawning enemies
 let frame = 0
 let gameOver = false
@@ -179,7 +179,7 @@ function handleWizards() {
         for (let j = 0; j < enemies.length; j++){
             if (wizards[i] && collision(wizards[i], enemies[j])){ //this will check every wizards against every enemy
                 enemies[j].movement = 0 //stops enemy at wizard collision
-                wizards[i].health -= 2 //drops wizard health. The larger the number the faster wizards drop their health
+                wizards[i].health -= 0.2 //drops wizard health. The larger the number the faster wizards drop their health
             }
             if (wizards[i] && wizards[i].health <= 0) { //if wizard's health drops or equal to 0
                 wizards.splice(i, 1) //One wizard is removed from wizards array
@@ -222,7 +222,7 @@ function handleEnemies(){
             gameOver = true
         }
         if (enemies[i].health <= 0){
-            let bounty = enemies[i].maxHealth/10 //adds gold to player depending on the enemy health / 10
+            let bounty = enemies[i].maxHealth/5 //adds gold to player depending on the enemy health / 10
             playerGold += bounty //adds gold from enemy
             score += bounty //adds score points same as gold
             const findThisIndex = enemyPosition.indexOf(enemies[i].y) //detects enemy on y coordinate *Important
