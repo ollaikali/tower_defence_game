@@ -4,14 +4,14 @@ canvas.width = 900
 canvas.height = 600
 
 // GLOBAL VARIABLES
-const cellSize = 50
+const cellSize = 100
 const gap = 3
-let playerGold = 250
+let playerGold = 300
 let enemiesInterval = 600 // interval for spawning enemies
 let frame = 0
 let gameOver = false
 let score = 0
-
+// global arrays. Main data
 const grid = []
 const wizards = []
 const enemies = []
@@ -25,18 +25,20 @@ const mouse = {
     width: 0.1,
     height: 0.1,
 }
-let canvasPosition = canvas.getBoundingClientRect()
-canvas.addEventListener('mousemove', function (e) {
-    mouse.x = e.x - canvasPosition.left
+//to find mouse position:
+let canvasPosition = canvas.getBoundingClientRect() //method returns a DOMRect object providing information about the size of an element and its position relative to the viewport.
+//we are defining limits for top left position for drawing cells, so it cannot go beyond canvas
+canvas.addEventListener('mousemove', function (e) { // creating event listener for detecting mouse movement e= event
+    mouse.x = e.x - canvasPosition.left //
     mouse.y = e.y - canvasPosition.top
 })
-canvas.addEventListener('mouseleave', function () {
+canvas.addEventListener('mouseleave', function () { //when leaving canvas space, mouse event listener returns undefined for mouse coordinates x and y
     mouse.x = undefined
     mouse.y = undefined
 
 })
 // GAME BOARD
-const controls = {
+const controls = { //controls bar at the top of the canvas
     width: canvas.width,
     height: cellSize,
 }
@@ -48,22 +50,24 @@ class Cell {
         this.height = cellSize
     }
     draw() {
-        if (mouse.x && mouse.y && collision(this, mouse)) {
-            c.strokeStyle = 'black'
-            c.strokeRect(this.x, this.y, this.width, this.height)
+        if (mouse.x && mouse.y && collision(this, mouse)) { //checks if mouse is within the cell boundaries
+            c.strokeStyle = 'black' //color of the cell on mouse event listener
+            c.strokeRect(this.x, this.y, this.width, this.height) //draws cell boundary upon mouse event listener
         }
 
     }
 }
+//we create grid on our board: populate array
 function createGrid() {
     for (let y = cellSize; y < canvas.height; y += cellSize) {
         for (let x = 0; x < canvas.width; x += cellSize) {
-            grid.push(new Cell(x, y))
+            grid.push(new Cell(x, y)) //create new cell
         }
     }
 }
-createGrid()
+createGrid() //we order to create that grid system
 
+//we draw the grid through array
 function handleGrid() {
     for (let i = 0; i < grid.length; i++) {
         grid[i].draw()
@@ -79,20 +83,20 @@ class Spell {
         this.power = 20
         this.speed = 5
     }
-    update(){
+    update(){ //to create movement of our spells: it updates circles
         this.x += this.speed
-        console.log(this.x, this.y)
+        // console.log(this.x, this.y)
     }
     draw(){ //draws spells using arc property. Circle in this case
         c.fillStyle = 'black'
-        c.beginPath()
+        c.beginPath() //pre-build function to start drawing
         c.arc(this.x, this.y, this.width, 0, Math.PI * 2)
         c.fill()
     }
 }
 function handleSpells(){
     for (let i = 0; i < spells.length; i++){ //for loop that cycles through spell array creating animation
-        console.log(spells[i])
+        // console.log(spells[i])
         spells[i].update() //updates or creates movement of the spell
         spells[i].draw() //drawing along the path
         if (spells[i] && spells[i].x > canvas.width - cellSize) { //doesn't let a spell exit canvas space and stops before one grid / 2
@@ -101,10 +105,11 @@ function handleSpells(){
         }
         for (let j = 0; j < enemies.length; j++) {
             if (enemies[j] && spells[i] && collision(spells[i], enemies[j])){ //checks for collision between spells and enemies
-                enemies[j].health -= spells[i].power //removes health from enemies with the value of spells power
-                spells.splice(i, 1)
-                i--
-            }}
+                enemies[j].health -= spells[i].power //removes health from enemies with the value of spell power
+                spells.splice(i, 1) //spell is removed after contact
+                i-- //we remove just one spell
+            }
+        }
 
     }
     // console.log(spells.length)
@@ -122,7 +127,7 @@ class Wizard {
         this.timer = 0
     }
     draw() {
-        c.fillStyle = 'blue';
+        c.fillStyle = 'grey';
         c.fillRect(this.x, this.y, this.width, this.height)
         c.fillStyle = 'gold'
         c.font = '20px Cinzel Decorative'
@@ -130,15 +135,13 @@ class Wizard {
     }
     update(){
         if (this.casting == true){ //only casts spell if there is a target in line
-            this.timer++
-            console.log(this.timer)
-            if (this.timer % 100 === 0){
-                spells.push(new Spell(this.x + 70, this.y + 50))
-                console.log(spells)
-        }
-        // else { //otherwise, wizards don't cast spells
-        //     this.timer = 0 
-        // }
+            this.timer++ 
+            // console.log(this.timer)
+            if (this.timer % 100 === 0){ //once timer value equals to the number that can be divided by 100 AND remainder equals to 0: wizard casts a spell
+                spells.push(new Spell(this.x + 70, this.y + 50)) //creates spell at x=70, y=50 of that cell
+                // console.log(spells)
+            }
+
         }
     }
 }
@@ -147,7 +150,7 @@ canvas.addEventListener('click', function() {
     const gridX = mouse.x - (mouse.x % cellSize) + gap; 
 
     // module operator gives a remainder value, if mouse position is 260, cellSize is 100 ; 
-    // 100 % 100 = 60, so if mouse position is 260, then gridX = 260 - 60 = 200 which is the closest horisontal grid position to the left
+    // 260 % 100 = 60, so if mouse position is 260, then gridX = 260 - 60 + 3 = 200 which is the closest horisontal grid position to the left
     const gridY = mouse.y - (mouse.y % cellSize) + gap;
     //to prevent user from clicking on the top blue bar:
     if (gridY < cellSize) return; //because max cellSize is 100, on y if it's less then 100 then it's off the grid
@@ -161,9 +164,9 @@ canvas.addEventListener('click', function() {
 
     //wizard cost is here so we could change this value easily in the future when we cant to create wizards with different costs
     let wizardCost = 100
-    if (playerGold >= wizardCost) {
+    if (playerGold >= wizardCost) { //if we have more or equal gold to the cost of a wizard, we can place one
         wizards.push(new Wizard (gridX, gridY)) // since we defined closest grid positions, we are giving it to the wizard class and pushing it into array
-        playerGold -= wizardCost
+        playerGold -= wizardCost 
     }
 })
 function handleWizards() {
@@ -196,7 +199,6 @@ class Enemy {
         this.y = verticalPosition
         this.width = cellSize - gap * 2
         this.height = cellSize - gap * 2
-        // this.speed = Math.random() * 1 + 2 //defines enemy speed
         this.speed = Math.random() * 0.2 + 0.4 //defines enemy speed
         this.movement = this.speed
         this.health = 100
@@ -206,7 +208,7 @@ class Enemy {
         this.x -= this.movement
     }
     draw(){
-        c.fillStyle = 'red'
+        c.fillStyle = 'orange'
         c.fillRect(this.x, this.y, this.width, this.height)
         c.fillStyle = 'black'
         c.font = '20px Cinzel Decorative'
@@ -226,16 +228,16 @@ function handleEnemies(){
             playerGold += bounty //adds gold from enemy
             score += bounty //adds score points same as gold
             const findThisIndex = enemyPosition.indexOf(enemies[i].y) //detects enemy on y coordinate *Important
-            enemyPosition.splice(findThisIndex, 1) //we remove an enemy on y coordinate?
+            enemyPosition.splice(findThisIndex, 1) //we remove an enemy on y coordinate
             enemies.splice(i, 1) //removes enemy after it was defeated
             i-- //removes just one that enemy
         }
     }
-    if (frame % enemiesInterval === 0){ //every time frame gets up to 100, the new Enemy class spawns
-        let verticalPosition = Math.floor(Math.random() * 5 + 1) * cellSize + gap //this will always correspond with our vertical grid
+    if (frame % enemiesInterval === 0){ //every time frame gets up to its value with a remainder of0, a new Enemy spawns
+        let verticalPosition = Math.floor(Math.random() * 5 + 1) * cellSize + gap //this will always correspond with our vertical grid. It creates a position for enemy to spawn randomly between y rows
         enemies.push(new Enemy(verticalPosition)) //enemy spawns at var verticalPosition
         enemyPosition.push(verticalPosition) //creates new enemies
-        if (enemiesInterval > 120) enemiesInterval -= 50 //this is where to change enemy spawn speed - difficulty. Less than 50 - slower spawn
+        if (enemiesInterval > 120) enemiesInterval -= 50 //this is where to change enemy spawn speed - difficulty. More than 50 - slower spawn
     }
 }
 
@@ -253,9 +255,9 @@ function HandleGameStatus() {
     }
 }
 
-
+//main function that activates all animations
 function animate() {
-    c.clearRect(0, 0, canvas.width, canvas.height)
+    c.clearRect(0, 0, canvas.width, canvas.height) 
     c.fillStyle = 'grey'
     c.fillRect(0, 0, controls.width, controls.height)
     handleGrid() //grid now exists
@@ -266,8 +268,9 @@ function animate() {
     frame++
     if (!gameOver) requestAnimationFrame(animate) //stops the game if gameOver is true
 }
-animate()
+animate() // we call our main animate function
 
+//Makes rules for collision to occur
 function collision(first, second) {
     if (!(first.x > second.x + second.width ||
         first.x + first.width < second.x ||
@@ -279,7 +282,7 @@ function collision(first, second) {
     }
 }
 
-//Fix for the mouse offset when resizing the screen
+//Fix for the mouse offset when resizing the screen.
 window.addEventListener('resize', function(){
     canvasPosition = canvas.getBoundingClientRect()
 })
