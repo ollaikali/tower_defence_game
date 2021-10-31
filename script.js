@@ -115,6 +115,9 @@ function handleSpells(){
     // console.log(spells.length)
 }
 // WIZARDS
+const iceMage = new Image()
+iceMage.src = "iceMage.png"
+
 class Wizard {
     constructor(x, y) {
         this.x = x
@@ -122,29 +125,49 @@ class Wizard {
         this.width = cellSize - gap * 2
         this.height = cellSize - gap * 2
         this.casting = false
+        this.castingNow = false //we need this value to align spell casting animation with wizard animation
         this.health = 100
         // this.spells = []
         this.timer = 0
+        this.frameX = 0
+        this.frameY = 0
+        this.spriteWidth = 170
+        this.spriteHeight = 170
+        this.minFrame = 0
+        this.maxFrame = 4
     }
     draw() {
-        c.fillStyle = 'grey';
-        c.fillRect(this.x, this.y, this.width, this.height)
+        // c.fillStyle = 'grey';
+        // c.fillRect(this.x, this.y, this.width, this.height)
         c.fillStyle = 'gold'
         c.font = '20px Cinzel Decorative'
         c.fillText('Hp: ' + Math.floor(this.health), this.x + 15, this.y + 30)
+        c.drawImage(iceMage, this.frameX * this.spriteWidth, 0, this.spriteWidth, this.spriteHeight, 
+            this.x, this.y, this.width, this.height) //to specify where on the canvas to display
     }
     update(){
-        if (this.casting == true){ //only casts spell if there is a target in line
-            this.timer++ 
-            // console.log(this.timer)
-            if (this.timer % 100 === 0){ //once timer value equals to the number that can be divided by 100 AND remainder equals to 0: wizard casts a spell
+        if (frame % 20 === 0){ //modulus. If frame gets to 20 and remainder is 0, 1 frame is activated. Basically slows down the animation
+            if (this.frameX < this.maxFrame) this.frameX++ //adds one frame whenever frame modulus is activated
+            else this.frameX = this.minFrame //sets frame back to 0 to cycle again
+            if (this.frameX === 4) this.castingNow = true //whenever frame of a wizard gets to the 4th (which is attack animation) a spell will be cast
+        }
+        //I created this so that wizard doesn't stay in attack mode all the time. They now stay idle when there is no enemy in line
+        if(this.casting){
+            this.minFrame = 0
+            this.maxFrame = 4
+        } else {
+            this.minFrame = 5
+            this.maxFrame = 9
+        }
+
+        if (this.casting && this.castingNow == true){ //only casts spell if there is a target in line and only if the animation gets to the last phase which is casting animation
                 spells.push(new Spell(this.x + 70, this.y + 50)) //creates spell at x=70, y=50 of that cell
-                // console.log(spells)
+                this.castingNow = false
             }
 
         }
     }
-}
+
 canvas.addEventListener('click', function() {
     //find closest grid position to the left
     const gridX = mouse.x - (mouse.x % cellSize) + gap; 
@@ -195,11 +218,11 @@ function handleWizards() {
 // ENEMIES
 const enemyTypes = []
 const ninjaMale = new Image() //this creates image from pre-built class Image
-ninjaMale.src = 'enemy1.png'
+ninjaMale.src = 'ninjaM.png'
 enemyTypes.push(ninjaMale)
 
 const ninjaFemale = new Image()
-ninjaFemale.src = 'enemy2.png'
+ninjaFemale.src = 'ninjaF.png'
 enemyTypes.push(ninjaFemale)
 class Enemy {
     constructor(verticalPosition){
@@ -238,8 +261,9 @@ class Enemy {
          :img is the image we want to use
          :s - source is what area we crop from the sprite sheet
          :d - destination is where on the canvas we want to put our image*/
-         c.drawImage(this.enemyType, this.frameX * this.spriteWidth, 0, this.spriteWidth, this.spriteHeight, this.x, this.y, this.width, this.height) 
-         console.log (c.drawImage)
+         c.drawImage(this.enemyType, this.frameX * this.spriteWidth, 0, this.spriteWidth, this.spriteHeight, 
+            this.x, this.y, this.width, this.height) 
+        //  console.log (c.drawImage)
         
     }
 }
