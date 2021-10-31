@@ -193,6 +193,14 @@ function handleWizards() {
     }
 }
 // ENEMIES
+const enemyTypes = []
+const ninjaMale = new Image() //this creates image from pre-built class Image
+ninjaMale.src = 'enemy1.png'
+enemyTypes.push(ninjaMale)
+
+const ninjaFemale = new Image()
+ninjaFemale.src = 'enemy2.png'
+enemyTypes.push(ninjaFemale)
 class Enemy {
     constructor(verticalPosition){
         this.x = canvas.width
@@ -203,16 +211,36 @@ class Enemy {
         this.movement = this.speed
         this.health = 100
         this.maxHealth = this.health //This is needed to create different rewards in Gold for different targets defeated
+        this.enemyType = enemyTypes[Math.floor(Math.random() * enemyTypes.length)] //we randomize selection of either Male or Female ninjas from enemyTypes array. Math floor is used because array index cannot have decimal points
+        this.frameX = 0 //to go through X coordinate at the image sprite sheet
+        this.frameY = 0 //only needed if there are multi-lines sprite sheets
+        this.minFrame = 0
+        this.maxFrame = 9
+        this.spriteWidth = 365
+        this.spriteHeight = 460
     }
     update(){
         this.x -= this.movement
+        if (frame % 10 === 0){
+            if (this.frameX < this.maxFrame) this.frameX++ //this cycles through image frames
+            else this.frameX = this.minFrame //this starts over when X coordinate was not spotted further    
+        }
     }
     draw(){
-        c.fillStyle = 'orange'
-        c.fillRect(this.x, this.y, this.width, this.height)
+        // c.fillStyle = 'orange'
+        // c.fillRect(this.x, this.y, this.width, this.height)
         c.fillStyle = 'black'
         c.font = '20px Cinzel Decorative'
         c.fillText('Hp: ' + Math.floor(this.health), this.x + 15, this.y + 30)
+
+        /*The following pre-build method can have 3/5/9 arguments. We use 9 for full control
+         c.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh) 
+         :img is the image we want to use
+         :s - source is what area we crop from the sprite sheet
+         :d - destination is where on the canvas we want to put our image*/
+         c.drawImage(this.enemyType, this.frameX * this.spriteWidth, 0, this.spriteWidth, this.spriteHeight, this.x, this.y, this.width, this.height) 
+         console.log (c.drawImage)
+        
     }
 }
 // to move enemies on the grid
