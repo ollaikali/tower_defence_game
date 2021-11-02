@@ -3,6 +3,7 @@ const c = canvas.getContext('2d')
 canvas.width = 900
 canvas.height = 600
 
+
 // GLOBAL VARIABLES
 const cellSize = 100
 const gap = 3
@@ -11,6 +12,7 @@ let enemiesInterval = 600 // interval for spawning enemies
 let frame = 0
 let gameOver = false
 let score = 0
+const winningScore = 20
 // global arrays. Main data
 const grid = []
 const wizards = []
@@ -285,7 +287,8 @@ function handleEnemies(){
             i-- //removes just one that enemy
         }
     }
-    if (frame % enemiesInterval === 0){ //every time frame gets up to its value with a remainder of0, a new Enemy spawns
+    if (frame % enemiesInterval === 0){ //every time frame gets up to its value with a remainder of 0, a new Enemy spawns
+        if (score >= winningScore) return
         let verticalPosition = Math.floor(Math.random() * 5 + 1) * cellSize + gap //this will always correspond with our vertical grid. It creates a position for enemy to spawn randomly between y rows
         enemies.push(new Enemy(verticalPosition)) //enemy spawns at var verticalPosition
         enemyPosition.push(verticalPosition) //creates new enemies
@@ -304,6 +307,13 @@ function HandleGameStatus() {
         c.fillStyle = 'black'
         c.font = '80px Cinzel Decorative'
         c.fillText('GAME OVER', canvas.width / 3, canvas.height / 2)
+    }
+    if (score >= winningScore && enemies.length === 0){
+        c.fillStyle = 'Black'
+        c.font = '60px Cinzel Decorative'
+        c.fillText('YOU WON!', 130, 300)
+        c.font = '30px Cinzel Decorative'
+        c.fillText('Your score is ' + score + ' points!', 130, 340)
     }
 }
 
