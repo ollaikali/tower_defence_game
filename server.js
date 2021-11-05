@@ -1,13 +1,28 @@
-const express = require('express')
-const app = express()
+// const http = require('http')
+const fs = require('fs')
+// const port = 3000
+const main = require('./main.js')
 
-app.get('/', (request, response) => {
-    response.send('Hello World!')
-})
+main()
 
-const PORT = process.env.PORT || 3000
+// const server = http.createServer(function(req, res) {
+//     res.writeHead(200, { 'Content-Type': 'text/html' })
+//     fs.readFile('index.html', main, function(error, data) {
+//         if (error) {
+//             res.writeHead(404)
+//             res.write('Error: FIle Not Found')
+//         } else {
+//             res.write(data)
+//         }
+//         res.end
+//     })
+// })
 
-app.listen(PORT, function(){
-    console.log(`Listening on port ${PORT}`)
-  })
+// server.listen(port, function(error) {
+//     if(error) {
+//         console.log('Something went wrong', error)
+//     }else {
+//         console.log('Server is listening on port ' + port);
+//     }
+// })
 

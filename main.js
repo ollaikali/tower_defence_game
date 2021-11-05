@@ -19,6 +19,11 @@ const wizards = []
 const enemies = []
 const enemyPosition = []
 const spells = []
+const stats = {
+    enemies: 0,
+    spells: 0,
+    wizards: 0,
+}
 
 // MOUSE
 const mouse = {
@@ -90,7 +95,7 @@ class Spell {
         // console.log(this.x, this.y)
     }
     draw(){ //draws spells using arc property. Circle in this case
-        c.fillStyle = 'black'
+        c.fillStyle = '#80bfff'
         c.beginPath() //pre-build function to start drawing
         c.arc(this.x, this.y, this.width, 0, Math.PI * 2)
         c.fill()
@@ -140,10 +145,10 @@ class Wizard {
     }
     draw() {
         // c.fillStyle = 'grey';
-        // c.fillRect(this.x, this.y, this.width, this.height)
-        c.fillStyle = 'gold'
-        c.font = '20px Cinzel Decorative'
-        c.fillText('Hp: ' + Math.floor(this.health), this.x + 15, this.y + 30)
+        // c.fillRect(this.x, this.y, this.width, this.height) //hitbox of wizards
+        // c.fillStyle = 'gold'
+        // c.font = '20px Cinzel Decorative'
+        // c.fillText('Hp: ' + Math.floor(this.health), this.x + 15, this.y + 30)
         c.drawImage(iceMage, this.frameX * this.spriteWidth, 0, this.spriteWidth, this.spriteHeight, 
             this.x, this.y, this.width, this.height) //to specify where on the canvas to display
     }
@@ -163,7 +168,8 @@ class Wizard {
         }
 
         if (this.casting && this.castingNow == true){ //only casts spell if there is a target in line and only if the animation gets to the last phase which is casting animation
-                spells.push(new Spell(this.x + 70, this.y + 50)) //creates spell at x=70, y=50 of that cell
+                spells.push(new Spell(this.x + 70, this.y + 50))//creates spell at x=70, y=50 of that cell
+                stats.spells +=1 //for stats
                 this.castingNow = false
             }
 
@@ -191,6 +197,7 @@ canvas.addEventListener('click', function() {
     let wizardCost = 100
     if (playerGold >= wizardCost) { //if we have more or equal gold to the cost of a wizard, we can place one
         wizards.push(new Wizard (gridX, gridY)) // since we defined closest grid positions, we are giving it to the wizard class and pushing it into array
+        stats.wizards += 1
         playerGold -= wizardCost 
     }
 })
@@ -254,9 +261,9 @@ class Enemy {
     draw(){
         // c.fillStyle = 'orange'
         // c.fillRect(this.x, this.y, this.width, this.height)
-        c.fillStyle = 'black'
-        c.font = '20px Cinzel Decorative'
-        c.fillText('Hp: ' + Math.floor(this.health), this.x + 15, this.y + 30)
+        // c.fillStyle = 'black'
+        // c.font = '20px Cinzel Decorative'
+        // c.fillText('Hp: ' + Math.floor(this.health), this.x + 15, this.y + 30)
 
         /*The following pre-build method can have 3/5/9 arguments. We use 9 for full control
          c.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh) 
@@ -285,6 +292,7 @@ function handleEnemies(){
             enemyPosition.splice(findThisIndex, 1) //we remove an enemy on y coordinate
             enemies.splice(i, 1) //removes enemy after it was defeated
             i-- //removes just one that enemy
+            stats.enemies += 1
         }
     }
     if (frame % enemiesInterval === 0){ //every time frame gets up to its value with a remainder of 0, a new Enemy spawns
@@ -306,14 +314,16 @@ function HandleGameStatus() {
     if (gameOver){ //message if gameOver variable becomes true
         c.fillStyle = 'black'
         c.font = '80px Cinzel Decorative'
-        c.fillText('GAME OVER', canvas.width / 3, canvas.height / 2)
+        c.fillText('GAME OVER', 200, 250)
+        statistics()
     }
     if (score >= winningScore && enemies.length === 0){
         c.fillStyle = 'Black'
         c.font = '60px Cinzel Decorative'
-        c.fillText('YOU WON!', 130, 300)
+        c.fillText('YOU WON!', 200, 250)
         c.font = '30px Cinzel Decorative'
-        c.fillText('Your score is ' + score + ' points!', 130, 340)
+        c.fillText('Your score is ' + score + ' points!', 200, 290)
+        statistics()
     }
 }
 
@@ -331,6 +341,14 @@ function animate() {
     if (!gameOver) requestAnimationFrame(animate) //stops the game if gameOver is true
 }
 animate() // we call our main animate function
+function statistics() { //statistics at the end of the game
+    c.fillStyle = 'black'
+    c.font = '20px Arial'
+    c.fillText("Wizards summoned: " + stats.wizards, 200, 380)
+    c.fillText("Enemies eliminated: " + stats.enemies, 200, 400)
+    c.fillText("Total amount of spells used: " + stats.spells, 200, 420)
+}
+// statistics()
 
 //Makes rules for collision to occur
 function collision(first, second) {
